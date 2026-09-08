@@ -28,6 +28,7 @@
 """
 
 import asyncio
+import time
 
 import DomoticzEx as Domoticz
 from bleak import BleakScanner
@@ -47,6 +48,7 @@ DEFAULT_HEARTBEAT = 30
 class BasePlugin:
     def __init__(self):
         self.scan_duration = DEFAULT_SCAN_DURATION
+        self.next_scan_timestamp = int(time.time())
 
     def onStart(self):
         if Parameters.get("Mode6") == "Debug":
@@ -71,8 +73,10 @@ class BasePlugin:
         Domoticz.Log("Aranet Sensors stopped")
 
     def onHeartbeat(self):
-        #self.scan_and_update()
-        pass
+        now = int(time.time())
+        if now > self.next_scan_timestamp:
+            Domoticz.Debug("Update devices")
+            self.scan_and_update()
 
     # -- scanning -----------------------------------------------------
     def scan_and_update(self):
@@ -148,6 +152,7 @@ class BasePlugin:
 
         if mac in Devices:
             Domoticz.Debug(f"Update Aranet device: {base_name} ({mac}) - {reading.type.name}")
+            self._update_scan_timestamp(reading.ago, reading.interval)
 
             if reading.type == AranetType.ARANET4:
                 temperature = reading.temperature
@@ -206,6 +211,13 @@ class BasePlugin:
                 Devices[mac].Units[3].sValue = str(radon_concentration)
                 Devices[mac].Units[3].BatteryLevel = battery_level
                 Devices[mac].Units[3].Update()
+
+    def _update_scan_timestamp(self, ago, interval):
+        now = int(time.time())
+        next_update = now - ago + interval + 1
+        if next_update < self.next_scan_timestamp or now > self.next_scan_timestamp:
+            Domoticz.Debug(f"Next update in {interval-ago}")
+            self.next_scan_timestamp = next_update
 
     def _humidity_status(self, temperature, humidity):
         if humidity <= 30:
