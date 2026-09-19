@@ -1,3 +1,28 @@
+# Aranet Domoticz Plugin
+
+This project contains a Domoticz plugin dedicated to the Aranet devices (see below).
+
+The hard work to support the devices is made in the project [Anrijs/Aranet4-Python](https://github.com/Anrijs/Aranet4-Python).
+
+This branch adds a Domoticz plugin and this documentation.
+
+## Plugin
+
+This is a regular Domoticz python plugin: clone the repository in the plugin folder of your server
+and add the necessary dependency (module `bleak>=1.0.1`).
+
+The plugin will create read-only devices for the Aranet sensors within the Bluetooth range of the server.
+
+The detection and the update of values is based on the scan of devices (same as running the command `aranetctl --scan`).
+I wasn't able to open a connection and query a specific device with the MAC address: don't hesitate test
+with the command `aranetctl <MAC>` and update the plugin if it works for you.
+
+## Troubleshooting
+
+Check the bluetooth setup of your server and use bluetooth tools or the command `aranetctl` to list the
+available devices. These should be found by the plugin.
+
+You may enable debug logs to have more details or raise the scan duration if needed.
 
 # Aranet4 Python client
 Python library and command line interface for [Aranet Home](https://aranet.com/) sensors:
